@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="fableExample">
+  <head>
+    <title>Example</title>
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.25/angular.min.js"></script>
+    <script src="../dist/fable.js"></script>
+
+    <script src="example.js"></script>
+
+    <style>
+     .fbl-sorting:not(.fbl-sorting-reverse)::after {
+       content: "";
+
+       width: 0;
+       height: 0;
+       border-left: 3px solid transparent;
+       border-right: 3px solid transparent;
+       border-bottom: 3px solid black;
+
+       font-size: 0;
+       line-height: 0;
+
+       position: relative;
+       top: -6px;
+     }
+
+     .fbl-sorting-reverse::after {
+       content: "";
+
+       width: 0;
+       height: 0;
+       border-left: 3px solid transparent;
+       border-right: 3px solid transparent;
+       border-top: 3px solid black;
+
+       font-size: 0;
+       line-height: 0;
+
+       position: relative;
+       top: -4px;
+     }
+    </style>
+  </head>
+
+  <body>
+    <div ng-controller="FableExampleController">
+      <h1>Users</h1>
+      <button ng-click="newItem()">New Item</button>
+
+      <table fable="items">
+        <thead>
+          <tr>
+            <th fbl-sort="id">ID</th>
+            <th fbl-sort="name">Name</th>
+            <th fbl-sort="email">Email</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr fbl-repeat="item in fblItems">
+            <td>{{ item.id }}</td>
+            <td>{{ item.name }}</td>
+            <td>{{ item.email }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <div fbl-pager>
+        <span>Current Page: {{ fblPage }}</span>
+        <span>Total Pages: {{ fblTotalPages() }}</span>
+        <button ng-click="fblPrevPage()">Prev Page</button>
+        <button ng-click="fblNextPage()">Next Page</button>
+      </div>
+    </div>
+  </body>
+</html>
