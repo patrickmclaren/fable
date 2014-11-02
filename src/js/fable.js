@@ -1,100 +1,173 @@
-'use strict';
+(function (){
+    'use strict';
 
-angular.module('fable', [])
-    .directive('fable', function () {
-        return {
-            restrict: 'A',
-            controller: ['$scope', '$filter', function ($scope, $filter) {
-                var collection;
-                var visible;
+    angular.module('fable', [])
+        .directive('fable', function () {
+            return {
+                restrict: 'A',
+                controller: ['$scope', '$filter', function ($scope, $filter) {
 
-                $scope.fblInit = function (xs, root) {
-                    var collection = xs;
-                    var visible = collection.slice();
+                    ////////////////////////////////////////////////////////////
+                    // Start Here
+                    ////////////////////////////////////////////////////////////
 
-                    $scope.fblRoot = root(0);
-                    $scope.fblItems = visible;
-                    $scope.fblFilters = {};
-                };
+                    $scope.fblInit = function (listName, root) {
+                        $scope.fblRoot = root[0];
+                        $scope.fblFilters = {};
 
-                $scope.fblReSort = function (predicate, reverse) {
-                    visible = $filter('orderBy')(visible, predicate, reverse);
-                };
+                        $scope.fblPerPage = 10;
+                        $scope.fblPage = 1;
 
-                $scope.fblReView = function (filters) {
-                    visible = collection.slice();
-                    visible = $filter('filter')(visible, filters);
-                };
-            }],
-            link: function (scope, element, attrs) {
-                var fblBootstrapper = scope.$watch(attrs.fable, function (xs) {
-                    if (xs) {
-                        fblBootstrapper();
-                        scope.fblInit(xs, element);
+                        var fblBootstrapper = $scope.$watch(listName, function (list) {
+                            if (list) {
+                                fblBootstrapper();
+
+                                useList(list);
+                                watchList(listName);
+                            }
+                        });
+                    };
+
+                    ////////////////////////////////////////////////////////////
+                    // List Management
+                    ////////////////////////////////////////////////////////////
+
+                    function useList(list) {
+                        $scope.fblItems = list;
                     }
-                });
-            }
-        };
-    })
-    .directive('fblSort', function () {
-        return {
-            restrict: 'A',
-            link: function (scope, element, attrs) {
-                element.bind('click', function () {
-                    var reverse = false;
 
-                    var sortingCls = 'fbl-sorting';
-                    var reverseCls = 'fbl-sorting-reverse';
+                    function watchList(listName) {
+                        $scope.$watch(listName, function (list) {
+                            if (list !== $scope.fblItems) {
+                                useList(list);
+                            }
+                        });
+                    }
 
-                    var existingSort = scope.fblRoot.querySelector(sortingCls);
-                    if (existingSort) {
-                        var className = existingSort.className;
+                    ////////////////////////////////////////////////////////////
+                    // Sorting
+                    ////////////////////////////////////////////////////////////
 
-                        if (existingSort !== element.get(0)) {
-                            var newClassName = className
-                                .replace(reverseCls, "")
-                                .replace(sortingCls, "");
+                    $scope.fblReSort = function (predicate, reverse) {
+                        $scope.fblSortPredicate = predicate;
+                        $scope.fblSortReverse = reverse;
+                    };
+                }],
+                link: function (scope, element, attrs) {
+                    scope.fblInit(attrs.fable, element);
+                }
+            };
+        })
+        .filter('fblFilter', ['$filter', function ($filter) {
+            return function (input, filters, predicate, reverse, perPage, page) {
+                var filtered = $filter('filter')(input, filters);
+                var sorted = $filter('orderBy')(filtered, predicate, reverse);
+                var paged = sorted ? sorted.slice((page-1)*perPage, page*perPage) : [];
 
-                            existingSort.className = newClassName;
-                        } else {
-                            if (className.search(reverseCls) < 0) {
-                                existingSort.className = className + " " +
-                                    reverseCls;
+                return paged;
+            };
+        }])
+        .directive('fblRepeat', ['$compile', function ($compile) {
+            return {
+                restrict: 'A',
+                priority: 5000,
+                terminal: true,
+                compile: function (element, attrs) {
+                    var filterStr = ' | fblFilter:fblFilters:fblSortPredicate:fblSortReverse:fblPerPage:fblPage';
+                    attrs.$set('ngRepeat', attrs.fblRepeat + filterStr);
 
-                                reverse = true;
+                    var compiled = $compile(element, null, 5000);
+                    return function (scope) {
+                        compiled(scope);
+                    };
+                }
+            };
+        }])
+        .directive('fblSort', function () {
+            return {
+                restrict: 'A',
+                link: function (scope, element, attrs) {
+                    element.bind('click', function () {
+                        var reverse = false;
+
+                        var sortingCls = 'fbl-sorting';
+                        var reverseCls = 'fbl-sorting-reverse';
+
+                        var existingSort = scope.fblRoot.querySelector('.' +
+                            sortingCls);
+
+                        if (existingSort) {
+                            var className = existingSort.className;
+
+                            if (existingSort !== element[0]) {
+                                var newClassName = className
+                                    .replace(reverseCls, "")
+                                    .replace(sortingCls, "");
+
+                                existingSort.className = newClassName;
                             } else {
-                                existingSort.className = className
-                                    .replace(reverseCls, "");
+                                if (className.search(reverseCls) < 0) {
+                                    existingSort.className = className + " " +
+                                        reverseCls;
+
+                                    reverse = true;
+                                } else {
+                                    existingSort.className = className
+                                        .replace(reverseCls, "");
+                                }
                             }
                         }
-                    }
 
-                    element.className = element.className + " " + sortingCls;
-                    scope.fblReSort(attrs.fblSort, reverse);
-                })
-            }
-        };
-    })
-    .directive('fblFilter', function () {
-        return {
-            restrict: 'A',
-            link: function (scope, element, attrs) {
-                var observer = new MutationObserver(function () {
-                    var prop = attrs.fblFilter;
-                    var val = element.value || scope.$eval(attrs.fblFilterVal);
+                        element.addClass(sortingCls);
+                        scope.fblReSort(attrs.fblSort, reverse);
+                        scope.$apply();
+                    });
+                }
+            };
+        })
+        .directive('fblPager', function () {
+            return {
+                restrict: 'A',
+                controller: ['$scope', function ($scope) {
+                    $scope.fblTotalPages = function () {
+                        return Math.ceil($scope.fblItems.length / $scope.fblPerPage);
+                    };
 
-                    scope.fblFilters[prop] = val;
-                    scope.fblReView();
-                });
+                    $scope.fblNextPage = function () {
+                        if ($scope.fblPage < $scope.fblTotalPages()) {
+                            ++$scope.fblPage;
+                        }
+                    };
 
-                observer.observe(element(0), {
-                    attributes: true,
-                    childList: true
-                });
+                    $scope.fblPrevPage = function () {
+                        if (1 < $scope.fblPage && $scope.fblPage <= $scope.fblTotalPages()) {
+                            --$scope.fblPage;
+                        }
+                    };
+                }]
+            };
+        })
+        .directive('fblFilter', function () {
+            return {
+                restrict: 'A',
+                link: function (scope, element, attrs) {
+                    var observer = new MutationObserver(function () {
+                        var prop = attrs.fblFilter;
+                        var val = (element.value ||
+                            scope.$eval(attrs.fblFilterVal));
 
-                scope.$on('$destroy', function () {
-                    observer.disconnect();
-                });
-            }
-        };
-    });
+                        scope.fblFilters[prop] = val;
+                    });
+
+                    observer.observe(element[0], {
+                        attributes: true,
+                        childList: true
+                    });
+
+                    scope.$on('$destroy', function () {
+                        observer.disconnect();
+                    });
+                }
+            };
+        });
+})();
