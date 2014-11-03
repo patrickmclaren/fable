@@ -15,6 +15,7 @@
                         $scope.fblRoot = root[0];
                         $scope.fblFilters = {};
 
+                        $scope.fblTotalPages = 1;
                         $scope.fblPerPage = 10;
                         $scope.fblPage = 1;
 
@@ -34,6 +35,10 @@
 
                     function useList(list) {
                         $scope.fblItems = list;
+
+                        $scope.fblTotalPages = Math.ceil(
+                            $scope.fblItems.length / $scope.fblPerPage
+                        );
                     }
 
                     function watchList(listName) {
@@ -129,18 +134,14 @@
             return {
                 restrict: 'A',
                 controller: ['$scope', function ($scope) {
-                    $scope.fblTotalPages = function () {
-                        return Math.ceil($scope.fblItems.length / $scope.fblPerPage);
-                    };
-
                     $scope.fblNextPage = function () {
-                        if ($scope.fblPage < $scope.fblTotalPages()) {
+                        if ($scope.fblPage < $scope.fblTotalPages) {
                             ++$scope.fblPage;
                         }
                     };
 
                     $scope.fblPrevPage = function () {
-                        if (1 < $scope.fblPage && $scope.fblPage <= $scope.fblTotalPages()) {
+                        if (1 < $scope.fblPage && $scope.fblPage <= $scope.fblTotalPages) {
                             --$scope.fblPage;
                         }
                     };
