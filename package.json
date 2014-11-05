@@ -1,20 +1,23 @@
 {
-  "name": "fable",
-  "version": "0.0.0",
-  "description": "Simple Table Sorting and Filtering for AngularJS",
-  "main": "dist/fable.js",
-  "dependencies": {
-    "bower": "~1.3.12"
-  },
-  "devDependencies": {
-    "grunt": "~0.4.5",
-    "grunt-contrib-jshint": "~0.10.0",
-    "grunt-contrib-concat": "~0.5.0",
-    "grunt-contrib-uglify": "~0.6.0",
-    "karma": "~0.12.24",
-    "karma-jasmine": "~0.2.3",
-    "karma-phantomjs-launcher": "~0.1.4"
-  },
-  "author": "Patrick McLaren",
-  "license": "MIT"
+    "name": "fable",
+    "version": "0.0.0",
+    "description": "Simple Table Sorting and Filtering for AngularJS",
+    "main": "dist/fable.js",
+    "dependencies": {
+        "bower": "~1.3.12"
+    },
+    "devDependencies": {
+        "grunt": "~0.4.5",
+        "grunt-contrib-jshint": "~0.10.0",
+        "grunt-contrib-concat": "~0.5.0",
+        "grunt-contrib-uglify": "~0.6.0",
+        "karma": "~0.12.24",
+        "karma-jasmine": "~0.2.3",
+        "karma-phantomjs-launcher": "~0.1.4"
+    },
+    "author": "Patrick McLaren",
+    "license": "MIT",
+    "scripts": {
+        "test": "./node_modules/karma/bin/karma start"
+    }
 }
