@@ -2,73 +2,97 @@
 <html lang="en" ng-app="fableExample">
   <head>
     <title>Example</title>
-    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.25/angular.min.js"></script>
-    <script src="../dist/fable.js"></script>
-
-    <script src="example.js"></script>
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
 
     <style>
-     .fbl-sorting:not(.fbl-sorting-reverse)::after {
-       content: "";
-
-       width: 0;
-       height: 0;
-       border-left: 3px solid transparent;
-       border-right: 3px solid transparent;
-       border-bottom: 3px solid black;
-
-       font-size: 0;
-       line-height: 0;
-
+     .fbl-sorting, .fbl-sorting-reverse {
        position: relative;
-       top: -6px;
      }
 
-     .fbl-sorting-reverse::after {
+     .fbl-sorting:not(.fbl-sorting-reverse):after {
        content: "";
 
-       width: 0;
+       width:  0;
        height: 0;
-       border-left: 3px solid transparent;
-       border-right: 3px solid transparent;
-       border-top: 3px solid black;
+       border-left:   3px solid transparent;
+       border-right:  3px solid transparent;
+       border-bottom: 3px solid black;
 
-       font-size: 0;
+       font-size:   0;
        line-height: 0;
 
-       position: relative;
-       top: -4px;
+       position: absolute;
+       top:      50%;
+     }
+
+     .fbl-sorting-reverse:after {
+       content: "";
+
+       width:  0;
+       height: 0;
+       border-left:  3px solid transparent;
+       border-right: 3px solid transparent;
+       border-top:   3px solid black;
+
+       font-size:   0;
+       line-height: 0;
+
+       position: absolute;
+       top:      50%;
      }
     </style>
   </head>
 
   <body>
-    <div ng-controller="FableExampleController">
-      <h1>Users</h1>
-      <button ng-click="newItem()">New Item</button>
+    <div ng-controller="FableExampleController" class="container">
+      <div class="row">
+        <div class="col-md-12">
+          <div class="page-header">
+            <h1>Users</h1>
+          </div>
+        </div>
+      </div>
 
-      <table fable="items">
-        <thead>
-          <tr>
-            <th fbl-sort="id">ID</th>
-            <th fbl-sort="name">Name</th>
-            <th fbl-sort="email">Email</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr fbl-repeat="item in fblItems">
-            <td>{{ item.id }}</td>
-            <td>{{ item.name }}</td>
-            <td>{{ item.email }}</td>
-          </tr>
-        </tbody>
-      </table>
-      <div fbl-pager>
-        <span>Current Page: {{ fblPage }}</span>
-        <span>Total Pages: {{ fblTotalPages }}</span>
-        <button ng-click="fblPrevPage()">Prev Page</button>
-        <button ng-click="fblNextPage()">Next Page</button>
+      <div class="row">
+        <div class="col-md-9" fable="items">
+          <table class="table">
+            <thead>
+              <tr>
+                <th fbl-sort="id">ID</th>
+                <th fbl-sort="name">Name</th>
+                <th fbl-sort="email">Email</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr fbl-repeat="item in fblItems">
+                <td>{{ item.id }}</td>
+                <td>{{ item.name }}</td>
+                <td>{{ item.email }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="col-md-3">
+          <nav fbl-pager>
+            <ul class="pager">
+              <li><a href="" fbl-pager-prev>&larr;</a></li>
+              <li><a href="" fbl-pager-next>&rarr;</a></li>
+            </ul>
+          </nav>
+          <div class="text-center">
+            {{ fblPage }} of {{ fblTotalPages() }}
+          </div>
+
+          <hr>
+
+          <button class="btn btn-primary" ng-click="newItem()">New Item</button>
+        </div>
       </div>
     </div>
+
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.25/angular.min.js"></script>
+    <script src="/dist/fable.js"></script>
+    <script src="example.js"></script>
   </body>
 </html>
