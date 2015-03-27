@@ -93,5 +93,8 @@ describe('fblPager', function () {
 
         $rootScope.fblNextPage();
         expect($rootScope.fblPage).toEqual(2);
+
+        $rootScope.fblPrevPage();
+        expect($rootScope.fblPage).toEqual(1);
     });
 });
