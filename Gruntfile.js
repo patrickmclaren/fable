@@ -1,5 +1,8 @@
 module.exports = function (grunt) {
 
+    var srcFiles = ['src/**/*.js'];
+    var allFiles = srcFiles.concat(['Gruntfile.js', 'test/**/*.js']);
+
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
         concat: {
@@ -7,7 +10,7 @@ module.exports = function (grunt) {
                 separator: ';'
             },
             dist: {
-                src: ['src/**/*.js'],
+                src: srcFiles,
                 dest: 'dist/<%= pkg.name %>.js'
             }
         },
@@ -22,14 +25,17 @@ module.exports = function (grunt) {
             }
         },
         jshint: {
-            files: ['Gruntfile.js', 'src/**/*.js', 'test/**/*.js']
+            files: allFiles
+        },
+        jscs: {
+            src: allFiles
         }
     });
 
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-jshint');
+    grunt.loadNpmTasks('grunt-jscs');
     grunt.loadNpmTasks('grunt-contrib-concat');
 
-    grunt.registerTask('default', ['jshint', 'concat', 'uglify']);
-
+    grunt.registerTask('default', ['jshint', 'jscs', 'concat', 'uglify']);
 };
