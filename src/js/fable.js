@@ -1,4 +1,4 @@
-(function (){
+(function () {
     'use strict';
 
     angular.module('fable', [])
@@ -7,51 +7,31 @@
                 restrict: 'A',
                 controller: ['$scope', '$filter', function ($scope, $filter) {
 
-                    ////////////////////////////////////////////////////////////
-                    // Start Here
-                    ////////////////////////////////////////////////////////////
-
                     $scope.fblInit = function (listName, root) {
                         $scope.fblRoot = root[0];
                         $scope.fblFilters = {};
 
-                        $scope.fblTotalPages = 1;
                         $scope.fblPerPage = 10;
                         $scope.fblPage = 1;
 
-                        var fblBootstrapper = $scope.$watch(listName, function (list) {
-                            if (list) {
-                                fblBootstrapper();
+                        $scope.fblTotalPages = function () {
+                            var num = 0;
+                            if ($scope.fblItems) {
+                                num = $scope.fblItems.length;
 
-                                useList(list);
-                                watchList(listName);
                             }
-                        });
+
+                            return Math.ceil(num / $scope.fblPerPage);
+                        };
+
+                        var fblBootstrapper = $scope.$watch(
+                            listName, function (list) {
+                                if (list) {
+                                    fblBootstrapper();
+                                    $scope.fblItems = list;
+                                }
+                            });
                     };
-
-                    ////////////////////////////////////////////////////////////
-                    // List Management
-                    ////////////////////////////////////////////////////////////
-
-                    function useList(list) {
-                        $scope.fblItems = list;
-
-                        $scope.fblTotalPages = Math.ceil(
-                            $scope.fblItems.length / $scope.fblPerPage
-                        );
-                    }
-
-                    function watchList(listName) {
-                        $scope.$watch(listName, function (list) {
-                            if (list !== $scope.fblItems) {
-                                useList(list);
-                            }
-                        });
-                    }
-
-                    ////////////////////////////////////////////////////////////
-                    // Sorting
-                    ////////////////////////////////////////////////////////////
 
                     $scope.fblReSort = function (predicate, reverse) {
                         $scope.fblSortPredicate = predicate;
@@ -67,7 +47,11 @@
             return function (input, filters, predicate, reverse, perPage, page) {
                 var filtered = $filter('filter')(input, filters);
                 var sorted = $filter('orderBy')(filtered, predicate, reverse);
-                var paged = sorted ? sorted.slice((page-1)*perPage, page*perPage) : [];
+
+                var paged = [];
+                if (sorted) {
+                    paged = sorted.slice((page - 1) * perPage, page * perPage);
+                }
 
                 return paged;
             };
@@ -78,7 +62,9 @@
                 priority: 5000,
                 terminal: true,
                 compile: function (element, attrs) {
-                    var filterStr = ' | fblFilter:fblFilters:fblSortPredicate:fblSortReverse:fblPerPage:fblPage';
+                    var filterStr = ' | fblFilter:fblFilters:fblSortPredicate:' +
+                        'fblSortReverse:fblPerPage:fblPage';
+
                     attrs.$set('ngRepeat', attrs.fblRepeat + filterStr);
 
                     var compiled = $compile(element, null, 5000);
@@ -133,19 +119,36 @@
         .directive('fblPager', function () {
             return {
                 restrict: 'A',
-                controller: ['$scope', function ($scope) {
-                    $scope.fblNextPage = function () {
-                        if ($scope.fblPage < $scope.fblTotalPages) {
-                            ++$scope.fblPage;
+                link: function (scope, element, attrs) {
+                    scope.fblNextPage = function () {
+                        if (scope.fblPage < scope.fblTotalPages()) {
+                            scope.fblPage++;
+                            scope.$apply();
                         }
                     };
 
-                    $scope.fblPrevPage = function () {
-                        if (1 < $scope.fblPage && $scope.fblPage <= $scope.fblTotalPages) {
-                            --$scope.fblPage;
+                    scope.fblPrevPage = function () {
+                        if (1 < scope.fblPage) {
+                            if (scope.fblPage <= scope.fblTotalPages()) {
+                                scope.fblPage--;
+                                scope.$apply();
+                            }
                         }
                     };
-                }]
+
+                    function bindWithSelector(selector, action, fn) {
+                        var elms = element[0].querySelectorAll(selector);
+
+                        for (var i = 0; i < elms.length; i++) {
+                            elms[i].addEventListener(action, fn);
+                        }
+                    }
+
+                    bindWithSelector(
+                        '[fbl-pager-next]', 'click', scope.fblNextPage);
+                    bindWithSelector(
+                        '[fbl-pager-prev]', 'click', scope.fblPrevPage);
+                }
             };
         })
         .directive('fblFilter', function () {
